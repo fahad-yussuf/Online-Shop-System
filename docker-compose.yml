@@ -1,0 +1,61 @@
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "Marketplace_Dev1"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Marketplace_Dev1 -Q 'SELECT 1' -No || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      context: ./MarketplaceAPI
+      dockerfile: Dockerfile
+    ports:
+      - "5165:8080"
+    environment:
+      - ConnectionStrings__SqlServer=Server=sqlserver;Database=MarketplaceDB;User Id=sa;Password=Marketplace_Dev1;TrustServerCertificate=True
+      - ConnectionStrings__MongoDB=mongodb://mongodb:27017
+      - Jwt__Key=super_secret_dev_key_change_in_production
+      - Jwt__Issuer=MarketplaceAPI
+      - StockSettings__LowStockThreshold=5
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./MarketplaceClient
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  sqlserver_data:
+  mongo_data:
