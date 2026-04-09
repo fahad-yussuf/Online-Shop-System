@@ -85,8 +85,8 @@ jobs:
           context: ./MarketplaceAPI
           push: true
           tags: |
-            ghcr.io/fahad-76/marketplace-api:latest
-            ghcr.io/fahad-76/marketplace-api:${{ github.sha }}
+            ghcr.io/fahad-yussuf/marketplace-api:latest
+            ghcr.io/fahad-yussuf/marketplace-api:${{ github.sha }}
 
       - name: Build and push Frontend image
         uses: docker/build-push-action@v5
@@ -94,5 +94,5 @@ jobs:
           context: ./MarketplaceClient
           push: true
           tags: |
-            ghcr.io/fahad-76/marketplace-api:latest
-            ghcr.io/fahad-76/marketplace-api:${{ github.sha }}
+            ghcr.io/fahad-yussuf/marketplace-api:latest
+            ghcr.io/fahad-yussuf/marketplace-api:${{ github.sha }}
